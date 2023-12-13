@@ -1,0 +1,31 @@
+[package]
+name = "firewall"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies.rustls]
+version = "0.22"
+default-features = false
+features = []
+
+[dependencies.reqwest]
+optional = true
+version = "0.11"
+default-features = false
+features = ["rustls-tls"]
+
+[dependencies.cidr]
+version = "0.2"
+default-features = false
+features = ["std"]
+
+[features]
+default = []
+cloudflare = ["reqwest"]
+
+[dev-dependencies.reqwest]
+version = "0.11"
+default-features = false
+features = ["rustls-tls"]
+
+
