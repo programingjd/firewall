@@ -8,6 +8,9 @@ description = "Connection rejection abstraction"
 keywords = ["firewall", "cidr", "cloudflare"]
 license = "MIT"
 repository = "https://github.com/programingjd/firewall"
+exclude = [
+  ".idea"
+]
 
 [dependencies.rustls]
 optional = true
@@ -70,7 +73,3 @@ required-features = ["openssl"]
 name = "cloudflare"
 required-features = ["cloudflare"]
 
-[package]
-exclude = [
-  ".idea"
-]
