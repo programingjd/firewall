@@ -69,3 +69,8 @@ required-features = ["openssl"]
 [[example]]
 name = "cloudflare"
 required-features = ["cloudflare"]
+
+[package]
+exclude = [
+  ".idea"
+]
