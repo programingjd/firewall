@@ -8,8 +8,8 @@ description = "Connection rejection abstraction"
 keywords = ["firewall", "cidr", "cloudflare"]
 license = "MIT"
 repository = "https://github.com/programingjd/firewall"
-exclude = [
-  ".idea"
+include = [
+  "Cargo.toml", "src", "examples", "LICENSE", "README.md"
 ]
 
 [dependencies.rustls]
