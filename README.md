@@ -42,7 +42,7 @@ You can have a list of allowed ip ranges, and a list of denied ip ranges (both i
 
 You can also add an exception based on the TLS ClientHello content.
 
-A good use case for this is if you want to renew [Let's Encrypt](https://letsencrypt.org/) certificates with the `TLS-SNI-01` challenge. `Let's Encrypt` doesn't provide a list of ips that they use to validate the challenges. You can add an exception to bypass the allow list if the `acme-tls/1` protocol is listed in the TLS [ALPN extension](https://en.wikipedia.org/wiki/Application-Layer_Protocol_Negotiation).
+A good use case for this is if you want to renew [Let's Encrypt](https://letsencrypt.org/) certificates with the `TLS-ALPN-01` challenge. `Let's Encrypt` doesn't provide a list of ips that they use to validate the challenges. You can add an exception to bypass the allow list if the `acme-tls/1` protocol is listed in the TLS [ALPN extension](https://en.wikipedia.org/wiki/Application-Layer_Protocol_Negotiation).
 
 ```rust
 struct AcmeTlsSni01Exception {}
