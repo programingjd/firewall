@@ -15,6 +15,12 @@ version = "0.22"
 default-features = false
 features = ["ring"]
 
+[dependencies.openssl]
+optional = true
+version = "0.10"
+default-features = true
+features = ["v111"]
+
 [dependencies.reqwest]
 optional = true
 version = "0.11"
@@ -28,12 +34,14 @@ default-features = false
 features = ["std"]
 
 [features]
+#default = ["all"]
 default = ["builder"]
 builder = ["dep:cidr"]
 rustls = ["dep:rustls"]
+openssl = ["dep:openssl"]
 
 cloudflare = ["builder","dep:reqwest"]
-all = ["cloudflare"]
+all = ["cloudflare","rustls","openssl"]
 
 [dev-dependencies.tokio]
 version = "1.35"
@@ -53,6 +61,10 @@ features = ["ring", "pem"]
 [[example]]
 name = "tokio_rustls"
 required-features = ["rustls"]
+
+[[example]]
+name = "openssl"
+required-features = ["openssl"]
 
 [[example]]
 name = "cloudflare"

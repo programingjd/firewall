@@ -6,5 +6,6 @@ async fn main() -> tokio::io::Result<()> {
         .try_allow_cloudflare_ips()
         .await
         .unwrap();
+
     Ok(())
 }

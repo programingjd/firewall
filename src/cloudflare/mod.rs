@@ -15,7 +15,7 @@ impl Firewall {
     }
 }
 
-async fn fetch_cloudflare_ip_ranges() -> Result<Vec<IpCidr>> {
+pub async fn fetch_cloudflare_ip_ranges() -> Result<Vec<IpCidr>> {
     let client = Client::new();
     let ips_v4 = client
         .get("https://www.cloudflare.com/ips-v4/")
@@ -38,6 +38,42 @@ async fn fetch_cloudflare_ip_ranges() -> Result<Vec<IpCidr>> {
         .chain(ips_v6.lines())
         .filter(|&line| !line.is_empty())
         .map(|line| IpCidr::from_str(line).map_err(|_| Error::IpRangeFetchError))
-        .into_iter()
         .collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{Accept, NoClientHello};
+    use std::net::IpAddr;
+
+    #[test]
+    fn cloudflare_firewall() {
+        let firewall = tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .unwrap()
+            .block_on(async {
+                Firewall::default()
+                    .try_allow_cloudflare_ips()
+                    .await
+                    .unwrap()
+            });
+        assert!(!firewall.accept(
+            IpAddr::from_str("127.0.0.1").unwrap(),
+            None::<NoClientHello>
+        ));
+        assert!(firewall.accept(
+            IpAddr::from_str("108.162.192.0").unwrap(),
+            None::<NoClientHello>,
+        ));
+        assert!(firewall.accept(
+            IpAddr::from_str("::ffff:108.162.192.0").unwrap(),
+            None::<NoClientHello>,
+        ));
+        assert!(firewall.accept(
+            IpAddr::from_str("2a06:98c0:1::").unwrap(),
+            None::<NoClientHello>
+        ));
+    }
 }

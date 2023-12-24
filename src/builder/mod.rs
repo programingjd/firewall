@@ -10,9 +10,10 @@ use std::str::FromStr;
 pub type Result<T> = core::result::Result<T, Error>;
 
 #[derive(Debug, Clone)]
-pub struct Firewall<T: TlsAccept = NoAcmeChallengeException> {
+pub struct Firewall<T: TlsAccept = NoException> {
     allow: Allow,
     deny: Deny,
+    require_tls: bool,
     tls_accept: Option<T>,
     sni: Sni,
 }
@@ -42,15 +43,16 @@ impl Default for Deny {
 }
 
 #[derive(Debug, Clone)]
-pub struct NoAcmeChallengeException {}
+pub struct NoException {}
 
-impl TlsAccept for NoAcmeChallengeException {}
+impl TlsAccept for NoException {}
 
-impl Default for Firewall<NoAcmeChallengeException> {
+impl Default for Firewall<NoException> {
     fn default() -> Self {
         Firewall {
             allow: Allow::default(),
             deny: Deny::default(),
+            require_tls: false,
             tls_accept: None,
             sni: Sni::default(),
         }
@@ -83,6 +85,10 @@ impl Default for Sni {
 }
 
 impl<T: TlsAccept> Firewall<T> {
+    pub fn reset_ip_ranges<I: Into<IpCidr>>(&mut self, cidrs: impl Iterator<Item = I>) {
+        self.allow = Allow::Only(cidrs.map(|it| it.into()).collect())
+    }
+
     pub fn allow_ip_range(self, cidr: IpCidr) -> Self {
         Firewall {
             allow: match self.allow {
@@ -93,6 +99,7 @@ impl<T: TlsAccept> Firewall<T> {
                 }
             },
             deny: self.deny,
+            require_tls: self.require_tls,
             tls_accept: self.tls_accept,
             sni: self.sni,
         }
@@ -107,6 +114,7 @@ impl<T: TlsAccept> Firewall<T> {
                 }
             },
             deny: self.deny,
+            require_tls: self.require_tls,
             tls_accept: self.tls_accept,
             sni: self.sni,
         }
@@ -132,6 +140,7 @@ impl<T: TlsAccept> Firewall<T> {
                     Deny::Only(vec)
                 }
             },
+            require_tls: self.require_tls,
             tls_accept: self.tls_accept,
             sni: self.sni,
         }
@@ -147,10 +156,21 @@ impl<T: TlsAccept> Firewall<T> {
         Ok(self.deny_ip(parse_ip(ip)?))
     }
 
+    pub fn require_tls(self) -> Self {
+        Firewall {
+            allow: self.allow,
+            deny: self.deny,
+            require_tls: true,
+            tls_accept: self.tls_accept,
+            sni: self.sni,
+        }
+    }
+
     pub fn allow_missing_sni(self) -> Self {
         Firewall {
             allow: self.allow,
             deny: self.deny,
+            require_tls: self.require_tls,
             tls_accept: self.tls_accept,
             sni: Sni::AcceptIfMissing,
         }
@@ -159,14 +179,32 @@ impl<T: TlsAccept> Firewall<T> {
         Firewall {
             allow: self.allow,
             deny: self.deny,
+            require_tls: self.require_tls,
             tls_accept: self.tls_accept,
             sni: Sni::DenyIfMissing,
+        }
+    }
+    pub fn allow_server_name(self, name: impl Into<String>) -> Self {
+        Firewall {
+            allow: self.allow,
+            deny: self.deny,
+            require_tls: self.require_tls,
+            tls_accept: self.tls_accept,
+            sni: match self.sni {
+                Sni::AcceptIfMissing => Sni::AllowOnly(vec![name.into()]),
+                Sni::DenyIfMissing => Sni::AllowOnly(vec![name.into()]),
+                Sni::AllowOnly(mut list) => {
+                    list.push(name.into());
+                    Sni::AllowOnly(list)
+                }
+            },
         }
     }
     pub fn allow_server_names(self, names: impl Iterator<Item = impl Into<String>>) -> Self {
         Firewall {
             allow: self.allow,
             deny: self.deny,
+            require_tls: self.require_tls,
             tls_accept: self.tls_accept,
             sni: match self.sni {
                 Sni::AcceptIfMissing => Sni::AllowOnly(names.map(|it| it.into()).collect()),
@@ -181,27 +219,25 @@ impl<T: TlsAccept> Firewall<T> {
         }
     }
 
-    pub fn with_acme_challenge_exception<R: TlsAccept>(
-        self,
-        acme_challenge_exception: R,
-    ) -> Firewall<R> {
+    pub fn with_exception<R: TlsAccept>(self, exception: R) -> Firewall<R> {
         Firewall {
             allow: self.allow,
             deny: self.deny,
-            tls_accept: Some(acme_challenge_exception),
+            require_tls: self.require_tls,
+            tls_accept: Some(exception),
             sni: self.sni,
         }
     }
 }
 
-impl<T: TlsAccept> Accept for Firewall<T> {
-    fn accept(&self, ip: impl Borrow<IpAddr>, client_hello: Option<impl ClientHello>) -> bool {
+impl<T: TlsAccept, CH: ClientHello> Accept<CH> for Firewall<T> {
+    fn accept(&self, ip: impl Borrow<IpAddr>, client_hello: Option<CH>) -> bool {
         if let Some(client_hello) = client_hello {
             match self.sni {
                 Sni::AcceptIfMissing => {}
                 Sni::DenyIfMissing => {
                     if client_hello.server_name().is_none() {
-                        //return false;
+                        return false;
                     }
                 }
                 Sni::AllowOnly(ref names) => {
@@ -227,7 +263,11 @@ impl<T: TlsAccept> Accept for Firewall<T> {
                         return true;
                     }
                 }
+            } else if !client_hello.has_alpn(b"http/1.1") {
+                return false;
             }
+        } else if self.require_tls {
+            return false;
         }
         if let Allow::Only(ref list) = self.allow {
             if !matches(ip.borrow(), list.iter()) {
@@ -319,6 +359,17 @@ mod tests {
         };
     }
 
+    struct TestClientHelloNoAlpn {}
+
+    impl ClientHello for TestClientHelloNoAlpn {
+        fn server_name(&self) -> Option<&str> {
+            None
+        }
+        fn has_alpn(&self, _alpn: &[u8]) -> bool {
+            false
+        }
+    }
+
     struct TestClientHelloNoSni {}
 
     impl ClientHello for TestClientHelloNoSni {
@@ -333,18 +384,31 @@ mod tests {
         }
     }
 
-    struct TestClientHello {}
+    struct TestClientHelloAcmeTls {}
 
-    const NONE: Option<TestClientHello> = None;
+    const NONE: Option<TestClientHelloAcmeTls> = None;
 
-    impl ClientHello for TestClientHello {
+    impl ClientHello for TestClientHelloAcmeTls {
         fn server_name(&self) -> Option<&str> {
             Some("www.example.com")
         }
         fn has_alpn(&self, alpn: &[u8]) -> bool {
             match alpn {
                 b"acme-tls/1" => true,
+                b"http/1.1" => true,
                 _ => false,
+            }
+        }
+    }
+
+    struct AcmeException {}
+
+    impl TlsAccept for AcmeException {
+        fn accept(&self, client_hello: impl ClientHello) -> AcceptDenyOverride {
+            if client_hello.has_alpn(b"acme-tls/1") {
+                AcceptDenyOverride::AcceptAndBypassAllowList
+            } else {
+                AcceptDenyOverride::Accept
             }
         }
     }
@@ -386,6 +450,18 @@ mod tests {
     }
 
     #[test]
+    fn firewall_require_tls() {
+        let firewall = Firewall::default();
+        assert!(firewall.accept(&IpAddr::V4(ipv4!("127.0.0.1")), NONE));
+        let firewall = firewall.require_tls().allow_missing_sni();
+        assert!(!firewall.accept(&IpAddr::V4(ipv4!("127.0.0.1")), NONE));
+        assert!(firewall.accept(
+            &IpAddr::V4(ipv4!("127.0.0.1")),
+            Some(TestClientHelloNoSni {})
+        ));
+    }
+
+    #[test]
     fn firewall_tls_sni() {
         let firewall = Firewall::default()
             .allow_ip_range(cidr4!("173.245.48.0", 20))
@@ -396,7 +472,7 @@ mod tests {
         ));
         assert!(firewall.accept(
             &IpAddr::V4(ipv4!("173.245.48.100")),
-            Some(TestClientHello {})
+            Some(TestClientHelloAcmeTls {})
         ));
         let firewall = firewall.allow_missing_sni();
         assert!(firewall.accept(
@@ -406,12 +482,12 @@ mod tests {
         let firewall = firewall.allow_server_names(vec!["example.com"].into_iter());
         assert!(!firewall.accept(
             &IpAddr::V4(ipv4!("173.245.48.100")),
-            Some(TestClientHello {})
+            Some(TestClientHelloAcmeTls {})
         ));
         let firewall = firewall.allow_server_names(vec!["www.example.com"].into_iter());
         assert!(firewall.accept(
             &IpAddr::V4(ipv4!("173.245.48.100")),
-            Some(TestClientHello {})
+            Some(TestClientHelloAcmeTls {})
         ));
     }
 
@@ -421,6 +497,19 @@ mod tests {
             .allow_ip_range(cidr4!("173.245.48.0", 20))
             .deny_ip_range(cidr4!("173.245.48.10", 32))
             .allow_missing_sni();
-        todo!()
+        assert!(!firewall.accept(
+            &IpAddr::V4(ipv4!("173.245.48.1")),
+            Some(TestClientHelloNoAlpn {})
+        ));
+        let firewall = firewall.with_exception(AcmeException {});
+        assert!(firewall.accept(
+            &IpAddr::V4(ipv4!("1.2.3.4")),
+            Some(TestClientHelloAcmeTls {})
+        ));
+        assert!(!firewall.accept(&IpAddr::V4(ipv4!("1.2.3.4")), Some(TestClientHelloNoSni {})));
+        assert!(firewall.accept(
+            &IpAddr::V4(ipv4!("173.245.48.1")),
+            Some(TestClientHelloNoSni {})
+        ));
     }
 }
