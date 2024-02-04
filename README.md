@@ -1,6 +1,4 @@
-[![LICENSE](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![crates.io Version](https://img.shields.io/crates/v/firewall.svg)](https://crates.io/crates/firewall)
-[![Documentation](https://docs.rs/firewall/badge.svg)](https://docs.rs/firewall)
+# Firewall &emsp; [![LICENSE](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) [![crates.io Version](https://img.shields.io/crates/v/firewall.svg)](https://crates.io/crates/firewall) [![Documentation](https://docs.rs/firewall/badge.svg)](https://docs.rs/firewall)
 
 The `Firewall` trait is meant to be used by servers to abstract the logic of blocking incoming requests.
 
