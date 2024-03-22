@@ -1,6 +1,6 @@
 [package]
 name = "firewall"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 authors = ["Jerome David <programingjd@gmail.com>"]
 categories = ["web-programming::http-server"]
@@ -9,12 +9,12 @@ keywords = ["firewall", "cidr", "cloudflare"]
 license = "MIT"
 repository = "https://github.com/programingjd/firewall"
 include = [
-  "Cargo.toml", "src", "examples", "LICENSE", "README.md"
+    "Cargo.toml", "src", "examples", "LICENSE", "README.md"
 ]
 
 [dependencies.rustls]
 optional = true
-version = "0.22"
+version = "0.23"
 default-features = false
 features = ["ring"]
 
@@ -24,11 +24,29 @@ version = "0.10"
 default-features = true
 features = ["v111"]
 
-[dependencies.reqwest]
+[dependencies.tokio]
 optional = true
-version = "0.11"
+version = "1.36"
 default-features = false
-features = ["rustls-tls"]
+features = ["net", "rt"]
+
+[dependencies.tokio-rustls]
+optional = true
+version = "0.26"
+default-features = false
+features = ["ring"]
+
+[dependencies.webpki-roots]
+optional = true
+version = "0.26"
+default-features = false
+features = []
+
+[dependencies.read_until_slice]
+optional = true
+version = "0.1"
+default-features = false
+features = []
 
 [dependencies.cidr]
 optional = true
@@ -43,16 +61,16 @@ builder = ["dep:cidr"]
 rustls = ["dep:rustls"]
 openssl = ["dep:openssl"]
 
-cloudflare = ["builder","dep:reqwest"]
-all = ["cloudflare","rustls","openssl"]
+cloudflare = ["builder", "dep:tokio", "dep:tokio-rustls", "dep:webpki-roots", "dep:read_until_slice"]
+all = ["cloudflare", "rustls", "openssl"]
 
 [dev-dependencies.tokio]
-version = "1.35"
+version = "1.36"
 default-features = false
 features = ["net", "io-util", "rt-multi-thread", "macros"]
 
 [dev-dependencies.tokio-rustls]
-version = "0.25"
+version = "0.26"
 default-features = false
 features = ["ring"]
 
