@@ -1,6 +1,6 @@
 [package]
 name = "firewall"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
 authors = ["Jerome David <programingjd@gmail.com>"]
 categories = ["web-programming::http-server"]
@@ -54,6 +54,18 @@ version = "0.2"
 default-features = false
 features = ["std"]
 
+[dependencies.serde]
+optional = true
+version = "1.0"
+default-features = false
+features = ["std", "derive"]
+
+[dependencies.serde_json]
+optional = true
+version = "1.0"
+default-features = false
+features = ["std"]
+
 [features]
 #default = ["all"]
 default = ["builder"]
@@ -62,7 +74,8 @@ rustls = ["dep:rustls"]
 openssl = ["dep:openssl"]
 
 cloudflare = ["builder", "dep:tokio", "dep:tokio-rustls", "dep:webpki-roots", "dep:read_until_slice"]
-all = ["cloudflare", "rustls", "openssl"]
+github_webhook = ["builder", "dep:tokio", "dep:tokio-rustls", "dep:webpki-roots", "dep:read_until_slice", "dep:serde", "dep:serde_json"]
+all = ["cloudflare", "github_webhook", "rustls", "openssl"]
 
 [dev-dependencies.tokio]
 version = "1.36"
@@ -91,3 +104,6 @@ required-features = ["openssl"]
 name = "cloudflare"
 required-features = ["cloudflare"]
 
+[[example]]
+name = "github_webhook"
+required-features = ["github_webhook"]

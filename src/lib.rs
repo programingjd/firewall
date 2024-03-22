@@ -10,6 +10,12 @@ pub mod builder;
 #[cfg(feature = "cloudflare")]
 pub mod cloudflare;
 
+#[cfg(feature = "github_webhook")]
+pub mod github;
+
+#[cfg(feature = "cloudflare")]
+mod https;
+
 use std::borrow::Borrow;
 use std::net::IpAddr;
 
