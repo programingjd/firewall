@@ -1,6 +1,6 @@
 [package]
 name = "firewall"
-version = "0.3.0"
+version = "0.3.1"
 edition = "2021"
 authors = ["Jerome David <programingjd@gmail.com>"]
 categories = ["web-programming::http-server"]
@@ -26,7 +26,7 @@ features = ["v111"]
 
 [dependencies.tokio]
 optional = true
-version = "1.36"
+version = "1.37"
 default-features = false
 features = ["net", "rt"]
 
@@ -67,8 +67,8 @@ default-features = false
 features = ["std"]
 
 [features]
-#default = ["all"]
-default = ["builder"]
+default = ["all"]
+#default = ["builder"]
 builder = ["dep:cidr"]
 rustls = ["dep:rustls"]
 openssl = ["dep:openssl"]
@@ -78,7 +78,7 @@ github_webhook = ["builder", "dep:tokio", "dep:tokio-rustls", "dep:webpki-roots"
 all = ["cloudflare", "github_webhook", "rustls", "openssl"]
 
 [dev-dependencies.tokio]
-version = "1.36"
+version = "1.37"
 default-features = false
 features = ["net", "io-util", "rt-multi-thread", "macros"]
 
@@ -88,7 +88,7 @@ default-features = false
 features = ["ring"]
 
 [dev-dependencies.rcgen]
-version = "0.12"
+version = "0.13"
 default-features = false
 features = ["ring", "pem"]
 

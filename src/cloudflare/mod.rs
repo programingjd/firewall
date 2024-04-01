@@ -136,8 +136,16 @@ mod tests {
             None::<NoClientHello>,
         ));
         assert!(firewall.accept(
+            IpAddr::from_str("172.71.134.65").unwrap(),
+            None::<NoClientHello>
+        ));
+        assert!(firewall.accept(
             IpAddr::from_str("::ffff:108.162.192.0").unwrap(),
             None::<NoClientHello>,
+        ));
+        assert!(firewall.accept(
+            IpAddr::from_str("::ffff:172.71.134.65").unwrap(),
+            None::<NoClientHello>
         ));
         assert!(firewall.accept(
             IpAddr::from_str("2a06:98c0:1::").unwrap(),

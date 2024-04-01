@@ -30,14 +30,9 @@ impl Default for LocalhostResolver {
         ])
         .expect("failed to generate self-signed certificate for localhost");
         let key = Arc::new(CertifiedKey::new(
-            vec![cert
-                .serialize_der()
-                .expect("failed to generate certificate")
-                .into()],
-            any_supported_type(&PrivateKeyDer::Pkcs8(
-                cert.serialize_private_key_der().into(),
-            ))
-            .expect("failed to generate signing key"),
+            vec![cert.cert.der().to_vec().into()],
+            any_supported_type(&PrivateKeyDer::Pkcs8(cert.key_pair.serialize_der().into()))
+                .expect("failed to generate signing key"),
         ));
         Self { key }
     }
