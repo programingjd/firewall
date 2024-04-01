@@ -67,8 +67,8 @@ default-features = false
 features = ["std"]
 
 [features]
-default = ["all"]
-#default = ["builder"]
+#default = ["all"]
+default = ["builder"]
 builder = ["dep:cidr"]
 rustls = ["dep:rustls"]
 openssl = ["dep:openssl"]
