@@ -26,7 +26,7 @@ features = ["v111"]
 
 [dependencies.tokio]
 optional = true
-version = "1.39"
+version = "1.40"
 default-features = false
 features = ["net", "rt"]
 
