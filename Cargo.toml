@@ -1,6 +1,6 @@
 [package]
 name = "firewall"
-version = "0.3.8"
+version = "0.3.9"
 edition = "2021"
 authors = ["Jerome David <programingjd@gmail.com>"]
 categories = ["web-programming::http-server"]
@@ -26,7 +26,7 @@ features = ["v111"]
 
 [dependencies.tokio]
 optional = true
-version = "1.42"
+version = "1.43"
 default-features = false
 features = ["net", "rt"]
 
@@ -77,7 +77,7 @@ github_webhook = ["builder", "dep:tokio", "dep:tokio-rustls", "dep:webpki-roots"
 all = ["cloudflare", "github_webhook", "rustls", "openssl"]
 
 [dev-dependencies.tokio]
-version = "1.42"
+version = "1.43"
 default-features = false
 features = ["net", "io-util", "rt-multi-thread", "macros"]
 
