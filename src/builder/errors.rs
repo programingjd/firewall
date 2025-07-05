@@ -9,9 +9,9 @@ pub enum Error {
 impl Display for Error {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match *self {
-            Self::CidrParseError { ref cidr } => write!(f, "could not parse \"{}\" as cidr", cidr),
+            Self::CidrParseError { ref cidr } => write!(f, "could not parse \"{cidr}\" as cidr"),
             Self::IpAddrParseError { ref addr } => {
-                write!(f, "could not parse \"{}\" as ip address", addr)
+                write!(f, "could not parse \"{addr}\" as ip address")
             }
         }
     }
