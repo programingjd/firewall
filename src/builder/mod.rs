@@ -18,31 +18,21 @@ pub struct Firewall<T: TlsAccept = NoException> {
     sni: Sni,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Default, Debug, Clone)]
 enum Allow {
+    #[default]
     All,
     Only(Vec<IpCidr>),
 }
 
-impl Default for Allow {
-    fn default() -> Self {
-        Self::All
-    }
-}
-
-#[derive(Debug, Clone)]
+#[derive(Default, Debug, Clone)]
 enum Deny {
+    #[default]
     None,
     Only(Vec<IpCidr>),
 }
 
-impl Default for Deny {
-    fn default() -> Self {
-        Self::None
-    }
-}
-
-#[derive(Debug, Clone)]
+#[derive(Default, Debug, Copy, Clone)]
 pub struct NoException {}
 
 impl TlsAccept for NoException {}
@@ -71,17 +61,12 @@ pub enum AcceptDenyOverride {
     Deny,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Default, Debug, Clone)]
 enum Sni {
     AcceptIfMissing,
+    #[default]
     DenyIfMissing,
     AllowOnly(Vec<String>),
-}
-
-impl Default for Sni {
-    fn default() -> Self {
-        Self::DenyIfMissing
-    }
 }
 
 impl<T: TlsAccept> Firewall<T> {
@@ -255,10 +240,10 @@ impl<T: TlsAccept, CH: ClientHello> Accept<CH> for Firewall<T> {
                     AcceptDenyOverride::Deny => return false,
                     AcceptDenyOverride::Accept => {}
                     AcceptDenyOverride::AcceptAndBypassAllowList => {
-                        if let Deny::Only(ref list) = self.deny {
-                            if matches(ip.borrow(), list.iter()) {
-                                return false;
-                            }
+                        if let Deny::Only(ref list) = self.deny
+                            && matches(ip.borrow(), list.iter())
+                        {
+                            return false;
                         }
                         return true;
                     }
@@ -269,15 +254,15 @@ impl<T: TlsAccept, CH: ClientHello> Accept<CH> for Firewall<T> {
         } else if self.require_tls {
             return false;
         }
-        if let Allow::Only(ref list) = self.allow {
-            if !matches(ip.borrow(), list.iter()) {
-                return false;
-            }
+        if let Allow::Only(ref list) = self.allow
+            && !matches(ip.borrow(), list.iter())
+        {
+            return false;
         }
-        if let Deny::Only(ref list) = self.deny {
-            if matches(ip.borrow(), list.iter()) {
-                return false;
-            }
+        if let Deny::Only(ref list) = self.deny
+            && matches(ip.borrow(), list.iter())
+        {
+            return false;
         }
         true
     }

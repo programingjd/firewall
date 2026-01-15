@@ -10,6 +10,9 @@ pub mod builder;
 #[cfg(feature = "cloudflare")]
 pub mod cloudflare;
 
+#[cfg(feature = "fastly")]
+pub mod fastly;
+
 #[cfg(feature = "github_webhook")]
 pub mod github;
 

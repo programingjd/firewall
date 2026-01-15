@@ -74,7 +74,7 @@ impl ClientHello for SimulatedClientHello {
     }
 
     fn has_alpn(&self, alpn: &[u8]) -> bool {
-        self.alpn.iter().any(|&it| it == alpn)
+        self.alpn.contains(&alpn)
     }
 }
 

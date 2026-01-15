@@ -1,5 +1,5 @@
-use firewall::builder::Firewall;
 use firewall::Accept;
+use firewall::builder::Firewall;
 use rcgen::generate_simple_self_signed;
 extern crate rustls as extern_rustls;
 use extern_rustls::crypto::ring::sign::any_supported_type;
@@ -11,7 +11,7 @@ use extern_rustls::sign::CertifiedKey;
 use std::fmt::Debug;
 use std::net::Ipv4Addr;
 use std::sync::Arc;
-use tokio::io::{copy, sink, split, AsyncWriteExt};
+use tokio::io::{AsyncWriteExt, copy, sink, split};
 use tokio::join;
 use tokio::net::TcpListener;
 use tokio_rustls::LazyConfigAcceptor;
@@ -31,8 +31,10 @@ impl Default for LocalhostResolver {
         .expect("failed to generate self-signed certificate for localhost");
         let key = Arc::new(CertifiedKey::new(
             vec![cert.cert.der().to_vec().into()],
-            any_supported_type(&PrivateKeyDer::Pkcs8(cert.key_pair.serialize_der().into()))
-                .expect("failed to generate signing key"),
+            any_supported_type(&PrivateKeyDer::Pkcs8(
+                cert.signing_key.serialize_der().into(),
+            ))
+            .expect("failed to generate signing key"),
         ));
         Self { key }
     }

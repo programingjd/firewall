@@ -1,6 +1,6 @@
 [package]
 name = "firewall"
-version = "0.3.15"
+version = "0.4.0"
 edition = "2024"
 authors = ["Jerome David <programingjd@gmail.com>"]
 categories = ["web-programming::http-server"]
@@ -21,12 +21,12 @@ features = ["ring"]
 [dependencies.openssl]
 optional = true
 version = "0.10"
-default-features = true
-features = ["v111"]
+default-features = false
+features = []
 
 [dependencies.tokio]
 optional = true
-version = "1.48"
+version = "1.49"
 default-features = false
 features = ["net", "rt"]
 
@@ -73,18 +73,19 @@ rustls = ["dep:rustls"]
 openssl = ["dep:openssl"]
 
 cloudflare = ["builder", "dep:tokio", "dep:tokio-rustls", "dep:webpki-roots", "dep:read_until_slice"]
+fastly = ["builder", "dep:tokio", "dep:tokio-rustls", "dep:webpki-roots", "dep:read_until_slice", "dep:serde", "dep:serde_json"]
 github_webhook = ["builder", "dep:tokio", "dep:tokio-rustls", "dep:webpki-roots", "dep:read_until_slice", "dep:serde", "dep:serde_json"]
-all = ["cloudflare", "github_webhook", "rustls", "openssl"]
+all = ["cloudflare", "github_webhook", "fastly", "rustls", "openssl"]
 
 [dev-dependencies.tokio]
-version = "1.48"
+version = "1.49"
 default-features = false
 features = ["net", "io-util", "rt-multi-thread", "macros"]
 
 [dev-dependencies.tokio-rustls]
 version = "0.26"
 default-features = false
-features = ["ring"]
+features = ["ring", "tls12"]
 
 [dev-dependencies.rcgen]
 version = "0.14"
@@ -106,3 +107,7 @@ required-features = ["cloudflare"]
 [[example]]
 name = "github_webhook"
 required-features = ["github_webhook"]
+
+[[example]]
+name = "fastly"
+required-features = ["fastly"]
