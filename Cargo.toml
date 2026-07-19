@@ -1,6 +1,6 @@
 [package]
 name = "firewall"
-version = "0.4.3"
+version = "0.4.4"
 edition = "2024"
 authors = ["Jerome David <programingjd@gmail.com>"]
 categories = ["web-programming::http-server"]
@@ -26,7 +26,7 @@ features = ["vendored"]
 
 [dependencies.tokio]
 optional = true
-version = "1.52"
+version = "1.53"
 default-features = false
 features = ["net", "rt"]
 
@@ -72,13 +72,13 @@ builder = ["dep:cidr"]
 rustls = ["dep:rustls"]
 openssl = ["dep:openssl"]
 
-cloudflare = ["builder", "dep:tokio", "dep:tokio-rustls", "dep:webpki-roots", "dep:read_until_slice"]
-fastly = ["builder", "dep:tokio", "dep:tokio-rustls", "dep:webpki-roots", "dep:read_until_slice", "dep:serde", "dep:serde_json"]
-github_webhook = ["builder", "dep:tokio", "dep:tokio-rustls", "dep:webpki-roots", "dep:read_until_slice", "dep:serde", "dep:serde_json"]
+cloudflare = ["builder", "rustls", "dep:tokio", "dep:tokio-rustls", "dep:webpki-roots", "dep:read_until_slice"]
+fastly = ["builder", "rustls", "dep:tokio", "dep:tokio-rustls", "dep:webpki-roots", "dep:read_until_slice", "dep:serde", "dep:serde_json"]
+github_webhook = ["builder", "rustls", "dep:tokio", "dep:tokio-rustls", "dep:webpki-roots", "dep:read_until_slice", "dep:serde", "dep:serde_json"]
 all = ["cloudflare", "github_webhook", "fastly", "rustls", "openssl"]
 
 [dev-dependencies.tokio]
-version = "1.52"
+version = "1.53"
 default-features = false
 features = ["net", "io-util", "rt-multi-thread", "macros"]
 

@@ -1,5 +1,5 @@
 use crate::builder::Firewall;
-use crate::github::errors::Error;
+use crate::fastly::errors::Error;
 use cidr::IpCidr;
 use read_until_slice::AsyncBufReadUntilSliceExt;
 use rustls::pki_types::ServerName;
